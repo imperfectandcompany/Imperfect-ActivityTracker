@@ -1,5 +1,5 @@
 ﻿using CounterStrikeSharp.API.Core;
-using ImperfectActivityTracker.Models;
+using ImperfectActivityTracker.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace ImperfectActivityTracker

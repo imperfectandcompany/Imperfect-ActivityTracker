@@ -1,7 +1,13 @@
 ﻿using CounterStrikeSharp.API.Core;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
-namespace ImperfectActivityTracker.Models
+namespace ImperfectActivityTracker.Configuration
 {
     public class Config : BasePluginConfig
     {
@@ -10,5 +16,7 @@ namespace ImperfectActivityTracker.Models
         /// </summary>
         [JsonPropertyName("ConfigVersion")]
         public override int Version { get; set; } = 1;
+
+        public DatabaseSettings DatabaseSettings { get; set; } = new();
     }
 }
