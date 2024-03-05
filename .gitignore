@@ -1,0 +1,8 @@
+.vs/
+bin/
+obj/
+Publish/
+Properties/
+Release/
+*.user
+Notes.txt
