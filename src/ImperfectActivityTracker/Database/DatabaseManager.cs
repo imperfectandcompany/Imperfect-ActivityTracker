@@ -1,15 +1,24 @@
 ﻿using ImperfectActivityTracker.Configuration;
+using Microsoft.Extensions.Logging;
 using MySqlConnector;
+using Serilog.Core;
 
 
 namespace ImperfectActivityTracker.Database
 {
     public class DatabaseManager
     {
-        private static readonly Lazy<DatabaseManager> _instance = new Lazy<DatabaseManager>(() => new DatabaseManager());
+        private static readonly Lazy<DatabaseManager> _instance = new(() => new DatabaseManager(_logger));
         public static DatabaseManager Instance => _instance.Value;
 
+        public static ILogger<DatabaseManager> _logger { get; set;  }
+
         private string? _connectionString;
+
+        public DatabaseManager(ILogger<DatabaseManager> logger)
+        {
+            _logger = logger;
+        }
 
         public void Initialize(Config config)
         {
@@ -29,7 +38,7 @@ namespace ImperfectActivityTracker.Database
                 || string.IsNullOrEmpty(databaseSettings.DatabasePassword))
             {
                 /// Needed db connection information wasn't in the config
-                Console.WriteLine("Database connection string could not be created. Make sure to include all database information in the config.");
+               _logger.LogError("Database connection string could not be created. Make sure to include all database information in the config.");
             }
             else
             {
@@ -58,10 +67,10 @@ namespace ImperfectActivityTracker.Database
                         await executeActions(connection, transaction);
                         await transaction.CommitAsync();
                     }
-                    catch
+                    catch (Exception ex)
                     {
                         await transaction.RollbackAsync();
-                        throw;
+                        _logger.LogError("Something happened executing SQL transaction: {message}", ex.Message);
                     }
                 }
             }
