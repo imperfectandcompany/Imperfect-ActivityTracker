@@ -1,4 +1,4 @@
-# Imperfect Gamer [IG] - Activity Tracker
+# Imperfect Gamers [IG] - Activity Tracker
 
 A plugin for user activity tracking for CounterStrikeSharp.
 
