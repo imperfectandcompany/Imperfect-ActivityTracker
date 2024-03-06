@@ -55,7 +55,7 @@ namespace ImperfectActivityTracker.Database
             return connectionString;
         }
 
-        public async Task ExecuteWithTransactionAsync(Func<MySqlConnection, MySqlTransaction, Task> executeActions)
+        public async Task ExecuteTransactionAsync(Func<MySqlConnection, MySqlTransaction, Task> executeActions)
         {
             using (MySqlConnection connection = new MySqlConnection(_connectionString))
             {
@@ -78,17 +78,16 @@ namespace ImperfectActivityTracker.Database
 
         public async Task<bool> CreateTablesAsync()
         {
-            string timesModuleTableQuery = @$"CREATE TABLE IF NOT EXISTS `user_activity` (
-					`steam_id` VARCHAR(32) COLLATE 'utf8mb4_unicode_ci' UNIQUE NOT NULL,
-					`name` VARCHAR(255) COLLATE 'utf8mb4_unicode_ci' NOT NULL,
-					`time` INT NOT NULL DEFAULT 0,
-					UNIQUE (`steam_id`)
-				) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+            string timeTableQuery = @$"CREATE TABLE IF NOT EXISTS `user_activity` (
+					                        `steam_id` VARCHAR(32) UNIQUE NOT NULL,
+					                        `name` VARCHAR(255) NOT NULL,
+					                        `time` INT NOT NULL DEFAULT 0,
+					                        UNIQUE (`steam_id`))";
 
-            await ExecuteWithTransactionAsync(async (connection, transaction) =>
+            await ExecuteTransactionAsync(async (connection, transaction) =>
             {
-                MySqlCommand? command1 = new MySqlCommand(timesModuleTableQuery, connection, transaction);
-                await command1.ExecuteNonQueryAsync();
+                MySqlCommand? command = new MySqlCommand(timeTableQuery, connection, transaction);
+                await command.ExecuteNonQueryAsync();
             });
 
             return true;
