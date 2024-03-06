@@ -1,21 +1,22 @@
 ﻿using CounterStrikeSharp.API.Core;
 using ImperfectActivityTracker.Configuration;
+using ImperfectActivityTracker.Database;
 using Microsoft.Extensions.Logging;
 
 namespace ImperfectActivityTracker
 {
-    public class ImperfectActivityTracker : BasePlugin, IPluginConfig<Config>
+    public partial class ImperfectActivityTracker : BasePlugin, IPluginConfig<Config>
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<ImperfectActivityTracker> _logger;
 
-        public Config Config { get; set; }
+        public Config Config { get; set; } = new Config();
 
         public override string ModuleName => "Imperfect-ActivityTracker";
         public override string ModuleVersion => "0.1.0";
         public override string ModuleAuthor => "Imperfect Gamers - raz";
         public override string ModuleDescription => "A user activity tracker plugin.";
 
-        public ImperfectActivityTracker(ILogger logger)
+        public ImperfectActivityTracker(ILogger<ImperfectActivityTracker> logger)
         {
             _logger = logger;
         }
@@ -32,7 +33,15 @@ namespace ImperfectActivityTracker
 
         public void OnConfigParsed(Config config)
         {
-            throw new NotImplementedException();
+            if (config.Version < Config.Version)
+            {
+                _logger.LogWarning("The config version does not match current version: Expected: {0} | Current: {1}", Config.Version, config.Version);
+            }
+
+            // Initialize database and create table if it doesn't exist
+            DatabaseManager.Instance.Initialize(config);
+
+            Config = config;
         }
     }
 }
