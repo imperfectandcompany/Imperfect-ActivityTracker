@@ -13,7 +13,7 @@ namespace ImperfectActivityTracker
 
         public override string ModuleName => "Imperfect-ActivityTracker";
         public override string ModuleVersion => "0.1.0";
-        public override string ModuleAuthor => "Imperfect Gamers - raz";
+        public override string ModuleAuthor => "Imperfect Gamers - raz, Borrowed code from K4ryuu";
         public override string ModuleDescription => "A user activity tracker plugin.";
 
         public ImperfectActivityTracker(ILogger<ImperfectActivityTracker> logger)
