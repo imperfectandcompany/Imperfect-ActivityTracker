@@ -1,13 +1,13 @@
 ﻿using CounterStrikeSharp.API.Core;
 using ImperfectActivityTracker.Configuration;
-using ImperfectActivityTracker.Database;
 using Microsoft.Extensions.Logging;
 
 namespace ImperfectActivityTracker
 {
     public partial class ImperfectActivityTracker : BasePlugin, IPluginConfig<Config>
     {
-        private readonly ILogger<ImperfectActivityTracker> _logger;
+        public static ILogger _logger;
+        private static DatabaseManager _databaseManager;
 
         public Config Config { get; set; } = new Config();
 
@@ -16,14 +16,9 @@ namespace ImperfectActivityTracker
         public override string ModuleAuthor => "Imperfect Gamers - raz, Borrowed code from K4ryuu";
         public override string ModuleDescription => "A user activity tracker plugin.";
 
-        public ImperfectActivityTracker(ILogger<ImperfectActivityTracker> logger)
-        {
-            _logger = logger;
-        }
-
         public override void Load(bool hotReload)
         {
-
+            _logger = Logger;
         }
 
         public override void Unload(bool hotReload)
@@ -39,7 +34,8 @@ namespace ImperfectActivityTracker
             }
 
             // Initialize database and create table if it doesn't exist
-            DatabaseManager.Instance.Initialize(config);
+            _databaseManager = new();
+            _databaseManager.Initialize(config);
 
             Config = config;
         }

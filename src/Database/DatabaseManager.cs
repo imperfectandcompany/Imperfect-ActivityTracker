@@ -4,27 +4,17 @@ using MySqlConnector;
 using Serilog.Core;
 
 
-namespace ImperfectActivityTracker.Database
+namespace ImperfectActivityTracker
 {
     public class DatabaseManager
     {
-        private static readonly Lazy<DatabaseManager> _instance = new(() => new DatabaseManager(_logger));
-        public static DatabaseManager Instance => _instance.Value;
-
-        public static ILogger<DatabaseManager> _logger { get; set;  }
-
         private string? _connectionString;
-
-        public DatabaseManager(ILogger<DatabaseManager> logger)
-        {
-            _logger = logger;
-        }
 
         public void Initialize(Config config)
         {
             _connectionString = BuildConnectionString(config.DatabaseSettings);
 
-            Task.Run(Instance.CreateTablesAsync).Wait();
+            Task.Run(CreateTableAsync).Wait();
         }
 
         private string BuildConnectionString(DatabaseSettings databaseSettings)
@@ -38,7 +28,7 @@ namespace ImperfectActivityTracker.Database
                 || string.IsNullOrEmpty(databaseSettings.DatabasePassword))
             {
                 /// Needed db connection information wasn't in the config
-               _logger.LogError("Database connection string could not be created. Make sure to include all database information in the config.");
+                ImperfectActivityTracker._logger.LogError("Database connection string could not be created. Make sure to include all database information in the config.");
             }
             else
             {
@@ -70,19 +60,19 @@ namespace ImperfectActivityTracker.Database
                     catch (Exception ex)
                     {
                         await transaction.RollbackAsync();
-                        _logger.LogError("Something happened executing SQL transaction: {message}", ex.Message);
+                        ImperfectActivityTracker._logger.LogError("Something happened executing SQL transaction: {message}", ex.Message);
                     }
                 }
             }
         }
 
-        public async Task<bool> CreateTablesAsync()
+        public async Task<bool> CreateTableAsync()
         {
             string timeTableQuery = @$"CREATE TABLE IF NOT EXISTS `user_activity` (
-					                        `steam_id` VARCHAR(32) UNIQUE NOT NULL,
-					                        `name` VARCHAR(255) NOT NULL,
-					                        `time` INT NOT NULL DEFAULT 0,
-					                        UNIQUE (`steam_id`))";
+                                        `steam_id` VARCHAR(32) UNIQUE NOT NULL,
+                                        `name` VARCHAR(255) NOT NULL,
+                                        `time` INT NOT NULL DEFAULT 0,
+                                        UNIQUE (`steam_id`))";
 
             await ExecuteTransactionAsync(async (connection, transaction) =>
             {
