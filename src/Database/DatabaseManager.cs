@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using Serilog.Core;
+using System.Data;
 
 
 namespace ImperfectActivityTracker
@@ -66,12 +67,49 @@ namespace ImperfectActivityTracker
             }
         }
 
+        public async Task<DataTable> ExecuteReaderAsync(string query, params MySqlParameter[] parameters)
+        {
+            using (MySqlConnection connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddRange(parameters);
+                    using (MySqlDataReader reader = await command.ExecuteReaderAsync())
+                    {
+                        DataTable dataTable = new DataTable();
+                        dataTable.Load(reader);
+                        return dataTable;
+                    }
+                }
+            }
+        }
+
+        public async Task ExecuteNonQueryAsync(string query, params MySqlParameter[] parameters)
+        {
+            using (MySqlConnection connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                using (MySqlCommand command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddRange(parameters);
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
         public async Task<bool> CreateTableAsync()
         {
             string timeTableQuery = @$"CREATE TABLE IF NOT EXISTS `user_activity` (
                                         `steam_id` VARCHAR(32) UNIQUE NOT NULL,
                                         `name` VARCHAR(255) NOT NULL,
-                                        `time` INT NOT NULL DEFAULT 0,
+					                    `all` INT NOT NULL DEFAULT 0,
+					                    `ct` INT NOT NULL DEFAULT 0,
+					                    `t` INT NOT NULL DEFAULT 0,
+					                    `spec` INT NOT NULL DEFAULT 0,
+					                    `dead` INT NOT NULL DEFAULT 0,
+					                    `alive` INT NOT NULL DEFAULT 0,
                                         UNIQUE (`steam_id`))";
 
             await ExecuteTransactionAsync(async (connection, transaction) =>
