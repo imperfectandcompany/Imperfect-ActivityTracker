@@ -9,8 +9,10 @@ namespace ImperfectActivityTracker.Configuration
         /// Config version number
         /// </summary>
         [JsonPropertyName("ConfigVersion")]
-        public override int Version { get; set; } = 1;
+        public override int Version { get; set; } = 2;
 
         public DatabaseSettings DatabaseSettings { get; set; } = new();
+
+        public List<string> ServerIpList { get; set; } = new();
     }
 }
