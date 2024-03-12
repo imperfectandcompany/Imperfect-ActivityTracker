@@ -1,7 +1,6 @@
 ﻿using ImperfectActivityTracker.Configuration;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
-using Serilog.Core;
 using System.Data;
 
 

@@ -1,8 +1,6 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities;
-using ImperfectActivityTracker.Configuration;
-using ImperfectActivityTracker.Player;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using System.Data;
@@ -15,11 +13,11 @@ namespace ImperfectActivityTracker
         {
             List<PlayerData> playersData = new List<PlayerData>();
             List<CCSPlayerController> players = Utilities.GetPlayers()
-                .Where(p => p?.IsValid == true 
-                    && p.PlayerPawn?.IsValid == true 
-                    && !p.IsBot && !p.IsHLTV 
-                    && p.Connected == PlayerConnectedState.PlayerConnected 
-                    && p.SteamID.ToString().Length == 17 
+                .Where(p => p?.IsValid == true
+                    && p.PlayerPawn?.IsValid == true
+                    && !p.IsBot && !p.IsHLTV
+                    && p.Connected == PlayerConnectedState.PlayerConnected
+                    && p.SteamID.ToString().Length == 17
                     && PlayerCache.Instance.ContainsPlayer(p))
                 .ToList();
 
@@ -95,7 +93,7 @@ namespace ImperfectActivityTracker
 
         private void LoadPlayerCache(CCSPlayerController player)
         {
-			/// TODO: What do we want to call this table? (user_activity)
+            /// TODO: What do we want to call this table? (user_activity)
             string combinedQuery = $@"
 					INSERT INTO `user_activity` (`name`, `steam_id`)
 					VALUES (

@@ -1,8 +1,5 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Admin;
-using CounterStrikeSharp.API.Modules.Commands;
-using CounterStrikeSharp.API.Modules.Utils;
 using ImperfectActivityTracker.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text;
@@ -46,7 +43,7 @@ namespace ImperfectActivityTracker
         public void OnConfigParsed(Config config)
         {
             _logger = Logger;
-                
+
             if (config.Version < Config.Version)
             {
                 _logger.LogWarning("The config version does not match current version: Expected: {0} | Current: {1}", Config.Version, config.Version);
