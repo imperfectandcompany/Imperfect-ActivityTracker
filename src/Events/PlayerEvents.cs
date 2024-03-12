@@ -52,13 +52,21 @@ namespace ImperfectActivityTracker
                         ||(CsTeam)@event.Oldteam == CsTeam.CounterTerrorist)
                     {
                         playerData.TimeFields["surfing"] += (int)(DateTime.UtcNow - playerData.Times["Surfing"]).TotalSeconds;
-                        playerData.Times["Spec"] = now;
                     }
                     else if ((CsTeam)@event.Oldteam == CsTeam.Spectator)
                     {
                         playerData.TimeFields["spec"] += (int)(DateTime.UtcNow - playerData.Times["Spec"]).TotalSeconds;
-                        playerData.Times["Surfing"] = now;
                     }
+                }
+
+                if ((CsTeam)@event.Team == CsTeam.Terrorist
+                    || (CsTeam)@event.Team == CsTeam.CounterTerrorist)
+                {
+                    playerData.Times["Surfing"] = now;
+                }
+                else if ((CsTeam)@event.Team == CsTeam.Spectator)
+                {
+                    playerData.Times["Spec"] = now;
                 }
                 
                 return HookResult.Continue;
