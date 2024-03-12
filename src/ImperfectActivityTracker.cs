@@ -26,8 +26,6 @@ namespace ImperfectActivityTracker
 
         public override void Load(bool hotReload)
         {
-            _logger = Logger;
-
             RegisterPlayerConnectionEvents();
 
             RegisterPlayerEvents();
@@ -47,6 +45,8 @@ namespace ImperfectActivityTracker
 
         public void OnConfigParsed(Config config)
         {
+            _logger = Logger;
+                
             if (config.Version < Config.Version)
             {
                 _logger.LogWarning("The config version does not match current version: Expected: {0} | Current: {1}", Config.Version, config.Version);
