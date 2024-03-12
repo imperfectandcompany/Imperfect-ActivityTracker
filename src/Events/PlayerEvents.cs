@@ -48,67 +48,19 @@ namespace ImperfectActivityTracker
 
                 if ((CsTeam)@event.Oldteam != CsTeam.None)
                 {
-                    playerData.TimeFields[GetFieldForTeam((CsTeam)@event.Oldteam)] += (int)(DateTime.UtcNow - playerData.Times["Team"]).TotalSeconds;
+                    if ((CsTeam)@event.Oldteam == CsTeam.Terrorist
+                        ||(CsTeam)@event.Oldteam == CsTeam.CounterTerrorist)
+                    {
+                        playerData.TimeFields["surfing"] += (int)(DateTime.UtcNow - playerData.Times["Surfing"]).TotalSeconds;
+                        playerData.Times["Spec"] = now;
+                    }
+                    else if ((CsTeam)@event.Oldteam == CsTeam.Spectator)
+                    {
+                        playerData.TimeFields["spec"] += (int)(DateTime.UtcNow - playerData.Times["Spec"]).TotalSeconds;
+                        playerData.Times["Surfing"] = now;
+                    }
                 }
-
-                playerData.Times["Team"] = now;
-
-                return HookResult.Continue;
-            });
-
-            RegisterEventHandler<EventPlayerSpawned>((@event, info) =>
-            {
-                CCSPlayerController player = @event.Userid;
-
-                if (player is null || !player.IsValid || !player.PlayerPawn.IsValid)
-                {
-                    return HookResult.Continue;
-                }
-
-                if (player.IsBot || player.IsHLTV)
-                {
-                    return HookResult.Continue;
-                }
-
-                if (!PlayerCache.Instance.ContainsPlayer(player))
-                {
-                    return HookResult.Continue;
-                }
-
-                TimeData? playerData = PlayerCache.Instance.GetPlayerData(player).PlayerTimeData;
-
-                if (playerData is null)
-                {
-                    return HookResult.Continue;
-                }
-
-                playerData.TimeFields["dead"] += (int)(DateTime.UtcNow - playerData.Times["Death"]).TotalSeconds;
-                playerData.Times["Death"] = DateTime.UtcNow;
-
-                return HookResult.Continue;
-            });
-
-            RegisterEventHandler<EventPlayerDeath>((@event, info) =>
-            {
-                CCSPlayerController player = @event.Userid;
-
-                if (player is null || !player.IsValid || !player.PlayerPawn.IsValid)
-                    return HookResult.Continue;
-
-                if (player.IsBot || player.IsHLTV)
-                    return HookResult.Continue;
-
-                if (!PlayerCache.Instance.ContainsPlayer(player))
-                    return HookResult.Continue;
-
-                TimeData? playerData = PlayerCache.Instance.GetPlayerData(player).PlayerTimeData;
-
-                if (playerData is null)
-                    return HookResult.Continue;
-
-                playerData.TimeFields["alive"] += (int)(DateTime.UtcNow - playerData.Times["Death"]).TotalSeconds;
-                playerData.Times["Death"] = DateTime.UtcNow;
-
+                
                 return HookResult.Continue;
             });
         }

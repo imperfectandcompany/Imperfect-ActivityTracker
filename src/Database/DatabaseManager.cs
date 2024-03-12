@@ -103,12 +103,8 @@ namespace ImperfectActivityTracker
             string timeTableQuery = @$"CREATE TABLE IF NOT EXISTS `user_activity` (
                                         `steam_id` VARCHAR(32) UNIQUE NOT NULL,
                                         `name` VARCHAR(255) NOT NULL,
-					                    `all` INT NOT NULL DEFAULT 0,
-					                    `ct` INT NOT NULL DEFAULT 0,
-					                    `t` INT NOT NULL DEFAULT 0,
+					                    `surfing` INT NOT NULL DEFAULT 0,
 					                    `spec` INT NOT NULL DEFAULT 0,
-					                    `dead` INT NOT NULL DEFAULT 0,
-					                    `alive` INT NOT NULL DEFAULT 0,
                                         UNIQUE (`steam_id`))";
             try
             {

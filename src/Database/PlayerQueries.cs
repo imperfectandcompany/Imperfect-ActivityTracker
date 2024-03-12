@@ -148,7 +148,7 @@ namespace ImperfectActivityTracker
 
             Dictionary<string, int> TimeFields = new Dictionary<string, int>();
 
-            string[] timeFieldNames = { "all", "ct", "t", "spec", "alive", "dead" };
+            string[] timeFieldNames = { "surfing", "spec" };
 
             foreach (string timeField in timeFieldNames)
             {
@@ -162,9 +162,8 @@ namespace ImperfectActivityTracker
                 TimeFields = TimeFields,
                 Times = new Dictionary<string, DateTime>
                     {
-                        { "Connect", now },
-                        { "Team", now },
-                        { "Death", now }
+                        { "Surfing", now },
+                        { "Spec", now }
                     }
             };
 

@@ -147,11 +147,14 @@ namespace ImperfectActivityTracker
             if (playerData is null)
                 return;
 
-            playerData.TimeFields["all"] += (int)Math.Round((now - playerData.Times["Connect"]).TotalSeconds);
-            playerData.TimeFields[GetFieldForTeam((CsTeam)player.TeamNum)] += (int)Math.Round((now - playerData.Times["Team"]).TotalSeconds);
-
             if ((CsTeam)player.TeamNum > CsTeam.Spectator)
-                playerData.TimeFields[player.PawnIsAlive ? "alive" : "dead"] += (int)Math.Round((now - playerData.Times["Death"]).TotalSeconds);
+            {
+                playerData.TimeFields["surfing"] += (int)Math.Round((now - playerData.Times["Surfing"]).TotalSeconds);
+            }
+            else if ((CsTeam)player.TeamNum == CsTeam.Spectator)
+            {
+                playerData.TimeFields["spec"] += (int)Math.Round((now - playerData.Times["Spec"]).TotalSeconds);
+            }
         }
 
         public string FormatPlaytime(int totalSeconds)
