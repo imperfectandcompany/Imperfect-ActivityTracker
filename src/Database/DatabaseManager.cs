@@ -111,12 +111,18 @@ namespace ImperfectActivityTracker
 					                    `dead` INT NOT NULL DEFAULT 0,
 					                    `alive` INT NOT NULL DEFAULT 0,
                                         UNIQUE (`steam_id`))";
-
-            await ExecuteTransactionAsync(async (connection, transaction) =>
+            try
             {
-                MySqlCommand? command = new MySqlCommand(timeTableQuery, connection, transaction);
-                await command.ExecuteNonQueryAsync();
-            });
+                await ExecuteTransactionAsync(async (connection, transaction) =>
+                {
+                    MySqlCommand? command = new MySqlCommand(timeTableQuery, connection, transaction);
+                    await command.ExecuteNonQueryAsync();
+                });
+            }
+            catch (Exception ex)
+            {
+                ImperfectActivityTracker._logger.LogError("Error creating table: {message}", ex.Message);
+            }
 
             return true;
         }
