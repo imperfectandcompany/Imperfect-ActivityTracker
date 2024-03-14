@@ -77,16 +77,9 @@ namespace ImperfectActivityTracker
                 if (playerCacheData is null)
                     return HookResult.Continue;
 
-                /// Get the current server time data for this specific server using ip address in config
-                var currentServerTimeData = playerCacheData
-                    .PlayerTimeData
-                    .ServerTimeDataList
-                    .FirstOrDefault(server => server.ServerIp == ServerIpAddress);
-
-                /// Get the current map time data for this specific server and map using the current map name
-                var currentMapTimeData = currentServerTimeData
-                    .Maps
-                    .FirstOrDefault(map => map.MapName == CurrentMapName);
+                /// Get the current server and map time data for this specific 
+                /// server/map using ip address from config and current map name
+                (var currentServerTimeData, var currentMapTimeData) = GetOrCreateCurrentServerAndMapData(playerTimeData);
 
                 /// When the player changes a team, check that the old team was either ct/t/spec
                 if ((CsTeam)@event.Oldteam != CsTeam.None)
@@ -132,15 +125,9 @@ namespace ImperfectActivityTracker
             if (playerTimeData is null)
                 return;
 
-            /// Get the current server time data for this specific server using ip address in config
-            var currentServerTimeData = playerTimeData
-                .ServerTimeDataList
-                .FirstOrDefault(server => server.ServerIp == ServerIpAddress);
-
-            /// Get the current map time data for this specific server and map using the current map name
-            var currentMapTimeData = currentServerTimeData
-                .Maps
-                .FirstOrDefault(map => map.MapName == CurrentMapName);
+            /// Get the current server and map time data for this specific 
+            /// server/map using ip address from config and current map name
+            (var currentServerTimeData, var currentMapTimeData) = GetOrCreateCurrentServerAndMapData(playerTimeData);
 
             /// If the current team is greater than spectator, they are either on ct or t
             if ((CsTeam)player.TeamNum > CsTeam.Spectator)
