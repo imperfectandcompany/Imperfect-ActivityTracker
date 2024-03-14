@@ -24,17 +24,11 @@ namespace ImperfectActivityTracker
 
         public override void Load(bool hotReload)
         {
-            /// Register event handlers for when a player connects or disconnects
-            RegisterPlayerConnectionEvents();
+            /// Register event handlers related to the server (round start/end, map start/end)
+            RegisterServerEventHandlers();
 
-            /// Register event handlers for when a player changes teams/spec
-            RegisterPlayerEvents();
-
-            /// Register listener for when map changes to get current map name
-            RegisterListener<Listeners.OnMapStart>(name =>
-            {
-                CurrentMapName = name;
-            });
+            /// Register event handlers for related to a player (change teams/spec, connect/dc
+            RegisterPlayerEventHandlers();
 
             if (hotReload)
             {

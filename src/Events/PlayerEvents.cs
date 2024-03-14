@@ -12,8 +12,51 @@ namespace ImperfectActivityTracker
             CounterTerrorist = 3
         }
 
-        public void RegisterPlayerEvents()
+        public void RegisterPlayerEventHandlers()
         {
+            RegisterEventHandler((EventPlayerConnectFull @event, GameEventInfo info) =>
+            {
+                CCSPlayerController player = @event.Userid;
+
+                if (player is null || !player.IsValid || !player.PlayerPawn.IsValid || player.IsBot || player.IsHLTV)
+                    return HookResult.Continue;
+
+                // The player was found in the cache, no need to load info from db
+                if (PlayerCache.Instance.ContainsPlayer(player))
+                    return HookResult.Continue;
+
+                /// The player connected, let's load their info from the db and put them into the cache
+                LoadPlayerCache(player);
+
+                return HookResult.Continue;
+            });
+
+            RegisterEventHandler((EventPlayerDisconnect @event, GameEventInfo info) =>
+            {
+                CCSPlayerController player = @event.Userid;
+
+                if (player is null || !player.IsValid || !player.PlayerPawn.IsValid)
+                    return HookResult.Continue;
+
+                if (player.IsBot || player.IsHLTV)
+                    return HookResult.Continue;
+
+                if (!PlayerCache.Instance.ContainsPlayer(player))
+                    return HookResult.Continue;
+
+                /// The player is disconnecting, we need to save their current surf/spec times
+                BeforeDisconnect(player);
+
+                // Do not save cache for each player on map change, because it's handled by an optimized query for all players
+                if (@event.Reason != 1)
+                {
+                    /// Save the players cached info (name and time data) to the db and remove them from the cache
+                    SavePlayerCache(player, true);
+                }
+
+                return HookResult.Continue;
+            });
+
             RegisterEventHandler<EventPlayerTeam>((@event, info) =>
             {
                 CCSPlayerController player = @event.Userid;
