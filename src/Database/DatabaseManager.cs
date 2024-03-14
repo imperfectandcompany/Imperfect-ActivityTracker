@@ -103,8 +103,8 @@ namespace ImperfectActivityTracker
         public async Task<bool> CreateTableAsync()
         {
             string timeTableQuery = @$"CREATE TABLE IF NOT EXISTS `user_activity` (
-                                        `steam_id` VARCHAR(32) UNIQUE NOT NULL,
-                                        `name` VARCHAR(255) NOT NULL,
+                                        `steam_id` VARCHAR(32) COLLATE 'utf8mb4_unicode_ci' UNIQUE NOT NULL,
+                                        `name` VARCHAR(255) COLLATE 'utf8mb4_unicode_ci' NOT NULL,
 					                    `time_data` JSON,
                                         UNIQUE (`steam_id`))";
 
