@@ -21,17 +21,19 @@ namespace ImperfectActivityTracker
         {
             var connectionString = "";
 
+            /// Check for all necessary database information, log error if it does not, build connection string if all is good
             if (string.IsNullOrEmpty(databaseSettings.DatabaseHost)
                 || databaseSettings.DatabasePort <= 0
                 || string.IsNullOrEmpty(databaseSettings.DatabaseName)
                 || string.IsNullOrEmpty(databaseSettings.DatabaseUser)
                 || string.IsNullOrEmpty(databaseSettings.DatabasePassword))
             {
-                /// Needed db connection information wasn't in the config
+                /// Needed db connection information wasn't in the config, log error and TODO: throw exception
                 ImperfectActivityTracker._logger.LogError("Database connection string could not be created. Make sure to include all database information in the config.");
             }
             else
             {
+                /// All information was present, build the connection string
                 connectionString = new MySqlConnectionStringBuilder
                 {
                     Server = databaseSettings.DatabaseHost,

@@ -24,11 +24,13 @@ namespace ImperfectActivityTracker
 
         public override void Load(bool hotReload)
         {
-            /// Register events handlers for when a player connects or disconnects
+            /// Register event handlers for when a player connects or disconnects
             RegisterPlayerConnectionEvents();
 
+            /// Register event handlers for when a player changes teams/spec
             RegisterPlayerEvents();
 
+            /// Register listener for when map changes to get current map name
             RegisterListener<Listeners.OnMapStart>(name =>
             {
                 CurrentMapName = name;
@@ -36,8 +38,10 @@ namespace ImperfectActivityTracker
 
             if (hotReload)
             {
+                /// Get current map name on hot reload
                 CurrentMapName = NativeAPI.GetMapName();
 
+                /// Load all player cache data on hot reload
                 //LoadAllPlayersCache();
 
                 GameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules;
@@ -51,8 +55,10 @@ namespace ImperfectActivityTracker
 
         public void OnConfigParsed(Config config)
         {
+            /// Initialize logger on cfg parsing, so we can log warnings/errors regarding cfg versions/info
             _logger = Logger;
 
+            /// Parsed config version needs to match the current config version in case of addition/removal of fields
             if (config.Version < Config.Version)
             {
                 _logger.LogWarning("The config version does not match current version: Expected: {0} | Current: {1}", Config.Version, config.Version);
@@ -66,6 +72,7 @@ namespace ImperfectActivityTracker
             if (string.IsNullOrEmpty(config.ServerIp))
             {
                 _logger.LogError("Server IP is missing from config file.");
+                /// Throw exception because server ip is needed to save time data correctly
                 throw new NullReferenceException();
             }
             else

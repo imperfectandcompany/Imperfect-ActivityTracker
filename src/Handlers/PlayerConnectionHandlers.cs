@@ -14,11 +14,11 @@ namespace ImperfectActivityTracker
                 if (player is null || !player.IsValid || !player.PlayerPawn.IsValid || player.IsBot || player.IsHLTV)
                     return HookResult.Continue;
 
-                // Do not load the data, if the user is in the cache already
-                // This free up some resources and prevent plugin to load the same data twice
+                // The player was found in the cache, no need to load info from db
                 if (PlayerCache.Instance.ContainsPlayer(player))
                     return HookResult.Continue;
 
+                /// The player connected, let's load their info from the db and put them into the cache
                 LoadPlayerCache(player);
 
                 return HookResult.Continue;
@@ -37,11 +37,13 @@ namespace ImperfectActivityTracker
                 if (!PlayerCache.Instance.ContainsPlayer(player))
                     return HookResult.Continue;
 
+                /// The player is disconnecting, we need to save their current surf/spec times
                 BeforeDisconnect(player);
 
                 // Do not save cache for each player on mapchange, because it's handled by an optimised query for all players
                 if (@event.Reason != 1)
                 {
+                    /// Save the players cached info (name and time data) to the db and remove them from the cache
                     SavePlayerCache(player, true);
                 }
 

@@ -5,7 +5,6 @@ using ImperfectActivityTracker.Helpers;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using System.Data;
-using System.Web;
 
 namespace ImperfectActivityTracker
 {
@@ -151,10 +150,9 @@ namespace ImperfectActivityTracker
         {
             TimeData? timeData = null;
 
-            Dictionary<string, int> TimeFields = new Dictionary<string, int>();
-
             DateTime now = DateTime.UtcNow;
 
+            /// Create the current times and get/create the server time data list
             timeData = new TimeData
             {
                 Times = new Dictionary<string, DateTime>
@@ -260,15 +258,18 @@ namespace ImperfectActivityTracker
 
         private List<ServerTimeData> GetOrCreateJson(DataRow rowData)
         {
+            /// Get the time data from the SQL row and make sure it's a string
             var timeDataJson = Convert.ToString(rowData["time_data"]);
             List<ServerTimeData> serverTimeList;
-
+            
             if (string.IsNullOrEmpty(timeDataJson))
             {
+                /// JSON time data was empty, there is not current entry for this user, create a new one
                 serverTimeList = new List<ServerTimeData>();
             }
             else
             {
+                /// JSON time data was not empty, deserialize the it into a list of ServerTimeData objects
                 serverTimeList = JsonHelpers.DeserializeJson<List<ServerTimeData>>(timeDataJson);
             }
 
@@ -332,8 +333,11 @@ namespace ImperfectActivityTracker
 
         private async Task ExecuteTimeUpdateAsync(string playerName, string steamId, TimeData timeData)
         {
+            /// Serialize the list of ServerTimeData objects into a JSON string for saving
             var serverTimeData = JsonHelpers.SerializeJson(timeData.ServerTimeDataList);
 
+            /// Insert the name, steam id and time data into the database
+            /// Or update the name and time data if it already exists
             string query = $@"INSERT INTO `user_activity` (`name`, `steam_id`, `time_data`)
                       VALUES (@playerName, @steamId, @serverTimeData)
                       ON DUPLICATE KEY UPDATE `name` = @playerName, `time_data` = @serverTimeData;";
