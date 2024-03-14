@@ -11,6 +11,7 @@
 
     public class ServerTimeData
     {
+        public string ServerIp { get; set; } = "";
         public List<MapTimeData> Maps { get; set; } = new();
         public int TotalSurfingTime { get; set; }
         public int TotalSpecTime { get; set; }
@@ -19,7 +20,7 @@
     public class MapTimeData
     {
         public string MapName { get; set; } = "";
-        public string WorkshopID { get; set; } = "";
+        public string WorkshopId { get; set; } = "";
         public int SurfingTime { get; set; }
         public int SpecTime { get; set; }
     }
