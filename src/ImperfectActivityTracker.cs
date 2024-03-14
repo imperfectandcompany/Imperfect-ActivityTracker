@@ -36,7 +36,7 @@ namespace ImperfectActivityTracker
                 CurrentMapName = NativeAPI.GetMapName();
 
                 /// Load all player cache data on hot reload
-                //LoadAllPlayersCache();
+                LoadAllPlayersCache();
 
                 GameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules;
             }
@@ -44,7 +44,11 @@ namespace ImperfectActivityTracker
 
         public override void Unload(bool hotReload)
         {
+            SaveAllPlayersCache();
+
             base.Unload(hotReload);
+
+            this.Dispose();
         }
 
         public void OnConfigParsed(Config config)
