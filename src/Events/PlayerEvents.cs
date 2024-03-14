@@ -73,5 +73,36 @@ namespace ImperfectActivityTracker
                 return HookResult.Continue;
             });
         }
+
+        public void BeforeDisconnect(CCSPlayerController player)
+        {
+            DateTime now = DateTime.UtcNow;
+
+            PlayerCacheData playerCacheData = PlayerCache.Instance.GetPlayerData(player);
+            TimeData? playerTimeData = playerCacheData.PlayerTimeData;
+
+            var currentServerTimeData = playerCacheData
+                .PlayerTimeData
+                .ServerTimeDataList
+                .FirstOrDefault(server => server.ServerIp == ServerIpAddress);
+
+            var currentMapTimeData = currentServerTimeData
+                .Maps
+                .FirstOrDefault(map => map.MapName == CurrentMapName);
+
+            if (playerTimeData is null)
+                return;
+
+            if ((CsTeam)player.TeamNum > CsTeam.Spectator)
+            {
+                currentServerTimeData.TotalSurfingTime += (int)Math.Round((now - playerTimeData.Times["Surfing"]).TotalSeconds);
+                currentMapTimeData.SurfingTime += (int)Math.Round((now - playerTimeData.Times["Surfing"]).TotalSeconds);
+            }
+            else if ((CsTeam)player.TeamNum == CsTeam.Spectator)
+            {
+                currentServerTimeData.TotalSpecTime += (int)Math.Round((now - playerTimeData.Times["Spec"]).TotalSeconds);
+                currentMapTimeData.SpecTime += (int)Math.Round((now - playerTimeData.Times["Spec"]).TotalSeconds);
+            }
+        }
     }
 }
