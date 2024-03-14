@@ -163,21 +163,29 @@ namespace ImperfectActivityTracker
                 ServerTimeDataList = GetOrCreateJson(row)
             };
 
+            GetOrCreateCurrentServerAndMapData(timeData);
+
+            PlayerCache.Instance.AddOrUpdatePlayer(steamID, new PlayerCacheData
+            {
+                PlayerTimeData = timeData
+            });
+        }
+
+        private (ServerTimeData, MapTimeData) GetOrCreateCurrentServerAndMapData(TimeData timeData)
+        {
             var currentServerTimeData = GetOrCreateCurrentServerData(timeData);
+            var currentMapTimeData = new MapTimeData();
 
             if (currentServerTimeData != null)
             {
-                GetOrCreateCurrentMapTimeData(timeData, currentServerTimeData);
+                currentMapTimeData = GetOrCreateCurrentMapTimeData(timeData, currentServerTimeData);
             }
             else
             {
                 _logger.LogError("Something went wrong getting the server time data.");
             }
 
-            PlayerCache.Instance.AddOrUpdatePlayer(steamID, new PlayerCacheData
-            {
-                PlayerTimeData = timeData
-            });
+            return (currentServerTimeData, currentMapTimeData);
         }
 
         private ServerTimeData? GetOrCreateCurrentServerData(TimeData timeData)
@@ -220,12 +228,13 @@ namespace ImperfectActivityTracker
             }
         }
 
-        private void GetOrCreateCurrentMapTimeData(TimeData timeData, ServerTimeData currentServerTimeData)
+        private MapTimeData GetOrCreateCurrentMapTimeData(TimeData timeData, ServerTimeData currentServerTimeData)
         {
             if (string.IsNullOrEmpty(CurrentMapName)
                 || timeData == null)
             {
                 _logger.LogError("Unable to create map time data, the map name is null or empty");
+                return null;
             }
             else
             {
@@ -237,7 +246,7 @@ namespace ImperfectActivityTracker
                 if (currentMapTimeData != null)
                 {
                     /// If it isn't null, the map already exists in the list, nothing more to do, we can return
-                    return;
+                    return currentMapTimeData;
                 }
                 else
                 {
@@ -252,6 +261,8 @@ namespace ImperfectActivityTracker
                     };
 
                     currentServerTimeData.Maps.Add(currentMapTimeData);
+
+                    return currentMapTimeData;
                 }
             }
         }
