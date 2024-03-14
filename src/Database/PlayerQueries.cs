@@ -1,9 +1,11 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities;
+using ImperfectActivityTracker.Helpers;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using System.Data;
+using System.Web;
 
 namespace ImperfectActivityTracker
 {
@@ -62,8 +64,12 @@ namespace ImperfectActivityTracker
             {
                 foreach (PlayerData playerData in playersData)
                 {
-                    if (playerData.CacheData.PlayerTimeData != null)
+                    PlayerCacheData playerCacheData = playerData.CacheData;
+
+                    if (playerCacheData != null)
+                    {
                         await ExecuteTimeUpdateAsync(playerData.PlayerName, playerData.SteamId, playerData.CacheData.PlayerTimeData);
+                    }
                 }
             });
         }
@@ -93,7 +99,6 @@ namespace ImperfectActivityTracker
 
         private void LoadPlayerCache(CCSPlayerController player)
         {
-            /// TODO: What do we want to call this table? (user_activity)
             string combinedQuery = $@"
 					INSERT INTO `user_activity` (`name`, `steam_id`)
 					VALUES (
@@ -148,33 +153,137 @@ namespace ImperfectActivityTracker
 
             Dictionary<string, int> TimeFields = new Dictionary<string, int>();
 
-            string[] timeFieldNames = { "surfing", "spec" };
-
-            foreach (string timeField in timeFieldNames)
-            {
-                TimeFields[timeField] = Convert.ToInt32(row[timeField]);
-            }
-
             DateTime now = DateTime.UtcNow;
 
             timeData = new TimeData
             {
-                TimeFields = TimeFields,
                 Times = new Dictionary<string, DateTime>
-                    {
-                        { "Surfing", now },
-                        { "Spec", now }
-                    }
+                {
+                    { "Surfing", now },
+                    { "Spec", now }
+                },
+                ServerTimeDataList = GetOrCreateJson(row)
             };
+
+            var currentServerTimeData = GetOrCreateCurrentServerData(timeData);
+
+            if (currentServerTimeData != null)
+            {
+                GetOrCreateCurrentMapTimeData(timeData, currentServerTimeData);
+            }
+            else
+            {
+                _logger.LogError("Something went wrong getting the server time data.");
+            }
 
             PlayerCache.Instance.AddOrUpdatePlayer(steamID, new PlayerCacheData
             {
                 PlayerTimeData = timeData
             });
         }
+
+        private ServerTimeData? GetOrCreateCurrentServerData(TimeData timeData)
+        {
+            if (string.IsNullOrEmpty(ServerIpAddress)
+                || timeData == null)
+            {
+                _logger.LogError("Unable to create server time data, the server IP or TimeData is null or empty");
+                return null;
+            }
+            else
+            {
+                /// Get the server time data if it exists, create it if it doesn't
+                var currentServerTimeData = timeData
+                .ServerTimeDataList
+                .FirstOrDefault(server => server.ServerIp == ServerIpAddress);
+
+                if (currentServerTimeData != null)
+                {
+                    /// Since it already exists in the time data, no need to add it, we're done with this step and can return
+                    return currentServerTimeData;
+                }
+                else
+                {
+                    /// It doesn't exists, so we need to create the new server time data
+                    currentServerTimeData = new ServerTimeData()
+                    {
+                        ServerIp = ServerIpAddress,
+                        TotalSpecTime = 0,
+                        TotalSurfingTime = 0
+                    };
+
+                    /// And add it to the time data and the return
+                    timeData
+                        .ServerTimeDataList
+                        .Add(currentServerTimeData);
+
+                    return currentServerTimeData;
+                }
+            }
+        }
+
+        private void GetOrCreateCurrentMapTimeData(TimeData timeData, ServerTimeData currentServerTimeData)
+        {
+            if (string.IsNullOrEmpty(CurrentMapName)
+                || timeData == null)
+            {
+                _logger.LogError("Unable to create map time data, the map name is null or empty");
+            }
+            else
+            {
+                /// Get the map time data if it exists, create it if it doesn't
+                var currentMapTimeData = currentServerTimeData
+                    .Maps
+                    .FirstOrDefault(map => map.MapName == CurrentMapName);
+
+                if (currentMapTimeData != null)
+                {
+                    /// If it isn't null, the map already exists in the list, nothing more to do, we can return
+                    return;
+                }
+                else
+                {
+                    /// It is null, the map doesn't exist. Create it and add it
+                    currentMapTimeData = new MapTimeData()
+                    {
+                        MapName = CurrentMapName,
+                        //TODO: Get map workshop id
+                        //WorkshopID = GetMapWorkshopId(),
+                        SurfingTime = 0,
+                        SpecTime = 0
+                    };
+
+                    currentServerTimeData.Maps.Add(currentMapTimeData);
+                }
+            }
+        }
+
+        private List<ServerTimeData> GetOrCreateJson(DataRow rowData)
+        {
+            var timeDataJson = Convert.ToString(rowData["time_data"]);
+            List<ServerTimeData> serverTimeList;
+
+            if (string.IsNullOrEmpty(timeDataJson))
+            {
+                serverTimeList = new List<ServerTimeData>();
+            }
+            else
+            {
+                serverTimeList = JsonHelpers.DeserializeJson<List<ServerTimeData>>(timeDataJson);
+            }
+
+            return serverTimeList;
+        }
+
         private void LoadAllPlayersCache()
         {
-            List<CCSPlayerController> players = Utilities.GetPlayers().Where(player => player?.IsValid == true && player.PlayerPawn?.IsValid == true && !player.IsBot && !player.IsHLTV && player.SteamID.ToString().Length == 17).ToList();
+            List<CCSPlayerController> players = Utilities
+                .GetPlayers()
+                .Where(player => player?.IsValid == true 
+                       && player.PlayerPawn?.IsValid == true 
+                       && !player.IsBot && !player.IsHLTV 
+                       && player.SteamID.ToString().Length == 17)
+                .ToList();
 
             if (players.Count == 0)
                 return;
@@ -223,23 +332,21 @@ namespace ImperfectActivityTracker
 
         private async Task ExecuteTimeUpdateAsync(string playerName, string steamId, TimeData timeData)
         {
-            string fieldsForInsert = string.Join(", ", timeData.TimeFields.Select(f => $"`{f.Key}`"));
-            string valuesForInsert = string.Join(", ", timeData.TimeFields.Select(f => $"@{f.Key}"));
-            string onDuplicateKeyUpdate = string.Join(", ", timeData.TimeFields.Select(f => $"`{f.Key}` = @{f.Key}"));
+            var serverTimeData = JsonHelpers.SerializeJson(timeData.ServerTimeDataList);
 
-            string query = $@"INSERT INTO `user_activity` (`name`, `steam_id`, {fieldsForInsert})
-                      VALUES (@playerName, @steamId, {valuesForInsert})
-                      ON DUPLICATE KEY UPDATE `name` = @playerName, {onDuplicateKeyUpdate};";
+            string query = $@"INSERT INTO `user_activity` (`name`, `steam_id`, `time_data`)
+                      VALUES (@playerName, @steamId, @serverTimeData)
+                      ON DUPLICATE KEY UPDATE `name` = @playerName, `time_data` = @serverTimeData;";
 
             List<MySqlParameter> parameters = new List<MySqlParameter>
             {
                 new MySqlParameter("@playerName", playerName),
-                new MySqlParameter("@steamId", steamId)
+                new MySqlParameter("@steamId", steamId),
+                new MySqlParameter("@serverTimeData", serverTimeData)
             };
-
-            parameters.AddRange(timeData.TimeFields.Select(f => new MySqlParameter($"@{f.Key}", f.Value)));
 
             await _databaseManager.ExecuteNonQueryAsync(query, parameters.ToArray());
         }
     }
 }
+
