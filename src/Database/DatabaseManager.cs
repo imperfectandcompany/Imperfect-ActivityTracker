@@ -103,9 +103,9 @@ namespace ImperfectActivityTracker
             string timeTableQuery = @$"CREATE TABLE IF NOT EXISTS `user_activity` (
                                         `steam_id` VARCHAR(32) UNIQUE NOT NULL,
                                         `name` VARCHAR(255) NOT NULL,
-					                    `surfing` INT NOT NULL DEFAULT 0,
-					                    `spec` INT NOT NULL DEFAULT 0,
+					                    `time_data` JSON,
                                         UNIQUE (`steam_id`))";
+
             try
             {
                 await ExecuteTransactionAsync(async (connection, transaction) =>
