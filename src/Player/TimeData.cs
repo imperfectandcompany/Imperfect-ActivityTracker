@@ -4,8 +4,6 @@
     {
         public Dictionary<string, DateTime> Times { get; set; } = new Dictionary<string, DateTime>();
 
-        public Dictionary<string, int> TimeFields { get; set; } = new Dictionary<string, int>();
-
         public List<ServerTimeData> ServerTimeDataList { get; set; } = new();
     }
 
