@@ -28,8 +28,9 @@ namespace ImperfectActivityTracker
                 || string.IsNullOrEmpty(databaseSettings.DatabaseUser)
                 || string.IsNullOrEmpty(databaseSettings.DatabasePassword))
             {
-                /// Needed db connection information wasn't in the config, log error and TODO: throw exception
+                /// Needed db connection information wasn't in the config, log error and throw exception
                 ImperfectActivityTracker._logger.LogError("Database connection string could not be created. Make sure to include all database information in the config.");
+                throw new Exception("There was some missing database information in config.");
             }
             else
             {
