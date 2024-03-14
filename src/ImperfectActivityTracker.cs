@@ -15,6 +15,8 @@ namespace ImperfectActivityTracker
         public CCSGameRules? GameRules = null;
 
         public Config Config { get; set; } = new Config();
+        public string ServerIpAddress { get; set; } = "";
+        public string CurrentMapName { get; set; } = "";
 
         public override string ModuleName => "ImperfectActivityTracker";
         public override string ModuleVersion => "0.1.0";
@@ -23,13 +25,21 @@ namespace ImperfectActivityTracker
 
         public override void Load(bool hotReload)
         {
+            /// Register events handlers for when a player connects or disconnects
             RegisterPlayerConnectionEvents();
 
             RegisterPlayerEvents();
 
+            RegisterListener<Listeners.OnMapStart>(name =>
+            {
+                CurrentMapName = name;
+            });
+
             if (hotReload)
             {
-                // LoadAllPlayersCache();
+                CurrentMapName = NativeAPI.GetMapName();
+
+                //LoadAllPlayersCache();
 
                 GameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules;
             }
