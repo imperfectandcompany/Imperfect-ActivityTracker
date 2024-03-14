@@ -63,29 +63,22 @@ namespace ImperfectActivityTracker
             _databaseManager = new();
             _databaseManager.Initialize(config);
 
+            /// Get server ip from config
+            if (string.IsNullOrEmpty(config.ServerIp))
+            {
+                _logger.LogError("Server IP is missing from config file.");
+                throw new NullReferenceException();
+            }
+            else
+            {
+                ServerIpAddress = config.ServerIp;
+            }
+
             Config = config;
         }
 
         private void RegisterPlayerConnectionEvents()
         {
-            /// Player connect event
-            ///     Load player into cache if not already in cache
-            /// Player disconnect event
-            ///     Call BeforeDisconnect method
-            ///     Call SavePlayerCache unless map change (TODO: lookup reasons, wtf do the @event.Reason ints reference? How do we know 1 is map change?) 
-            /// Round start event
-            ///     Check if the event was fired within the last 3 seconds, this fixes the duplicated round start being fired by the game
-            ///     LastRoundStartEventTime = Now
-            ///     players = Utilities.GetAllPlayers();
-            ///     Print to chat time command (We probably don't need to do this)
-            /// Round end event
-            ///     Call SaveAllPlayersCache method
-            /// OnMapStart event listener
-            ///     Add timer, GameRules = FindAllEntitiesByDesignerName to get game rules? (What does this do?)
-            /// OnMapEnd event listener
-            ///     GameRules = null
-            ///    
-
             RegisterEventHandler((EventPlayerConnectFull @event, GameEventInfo info) =>
             {
                 CCSPlayerController player = @event.Userid;
