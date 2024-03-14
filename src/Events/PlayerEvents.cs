@@ -12,19 +12,6 @@ namespace ImperfectActivityTracker
             CounterTerrorist = 3
         }
 
-        public string GetFieldForTeam(CsTeam team)
-        {
-            switch (team)
-            {
-                case CsTeam.Terrorist:
-                    return "t";
-                case CsTeam.CounterTerrorist:
-                    return "ct";
-                default:
-                    return "spec";
-            }
-        }
-
         public void RegisterPlayerEvents()
         {
             RegisterEventHandler<EventPlayerTeam>((@event, info) =>
@@ -41,9 +28,19 @@ namespace ImperfectActivityTracker
                     return HookResult.Continue;
 
                 DateTime now = DateTime.UtcNow;
-                TimeData? playerData = PlayerCache.Instance.GetPlayerData(player).PlayerTimeData;
+                PlayerCacheData? playerCacheData = PlayerCache.Instance.GetPlayerData(player);
+                TimeData? playerTimeData = playerCacheData.PlayerTimeData;
 
-                if (playerData is null)
+                var currentServerTimeData = playerCacheData
+                    .PlayerTimeData
+                    .ServerTimeDataList
+                    .FirstOrDefault(server => server.ServerIp == ServerIpAddress);
+
+                var currentMapTimeData = currentServerTimeData
+                    .Maps
+                    .FirstOrDefault(map => map.MapName == CurrentMapName);
+
+                if (playerCacheData is null)
                     return HookResult.Continue;
 
                 if ((CsTeam)@event.Oldteam != CsTeam.None)
@@ -51,22 +48,26 @@ namespace ImperfectActivityTracker
                     if ((CsTeam)@event.Oldteam == CsTeam.Terrorist
                         ||(CsTeam)@event.Oldteam == CsTeam.CounterTerrorist)
                     {
-                        playerData.TimeFields["surfing"] += (int)(DateTime.UtcNow - playerData.Times["Surfing"]).TotalSeconds;
+                        /// total surfing time
+                        currentServerTimeData.TotalSurfingTime += (int)(now - playerTimeData.Times["Surfing"]).TotalSeconds;
+                        currentMapTimeData.SurfingTime += (int)(now - playerTimeData.Times["Surfing"]).TotalSeconds;
                     }
                     else if ((CsTeam)@event.Oldteam == CsTeam.Spectator)
                     {
-                        playerData.TimeFields["spec"] += (int)(DateTime.UtcNow - playerData.Times["Spec"]).TotalSeconds;
+                        /// total spec time
+                        currentServerTimeData.TotalSpecTime += (int)(now - playerTimeData.Times["Spec"]).TotalSeconds;
+                        currentMapTimeData.SpecTime += (int)(now - playerTimeData.Times["Spec"]).TotalSeconds;
                     }
                 }
 
                 if ((CsTeam)@event.Team == CsTeam.Terrorist
                     || (CsTeam)@event.Team == CsTeam.CounterTerrorist)
                 {
-                    playerData.Times["Surfing"] = now;
+                    playerTimeData.Times["Surfing"] = now;
                 }
                 else if ((CsTeam)@event.Team == CsTeam.Spectator)
                 {
-                    playerData.Times["Spec"] = now;
+                    playerTimeData.Times["Spec"] = now;
                 }
                 
                 return HookResult.Continue;
