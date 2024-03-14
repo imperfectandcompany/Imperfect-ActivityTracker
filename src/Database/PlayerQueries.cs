@@ -289,9 +289,13 @@ namespace ImperfectActivityTracker
             if (players.Count == 0)
                 return;
 
-            string combinedQuery = $@"SELECT *
-					                  FROM `user_activity`
-					                  WHERE `steam_id` = {players.Select(p => p.SteamID)}";
+            //string combinedQuery = $@"SELECT *
+					       //           FROM `user_activity`
+					       //           WHERE `steam_id` = {players.Select(p => p.SteamID)}";
+
+			string combinedQuery = $@"SELECT `steam_id`, `time_data`
+                                    FROM `user_activity`
+                                    WHERE `steam_id` = (" + string.Join(",", players.Select(player => $"'{player.SteamID}'")) + ");";
 
             try
             {
