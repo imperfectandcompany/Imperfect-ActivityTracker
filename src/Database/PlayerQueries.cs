@@ -272,7 +272,7 @@ namespace ImperfectActivityTracker
             /// Get the time data from the SQL row and make sure it's a string
             var timeDataJson = Convert.ToString(rowData["time_data"]);
             List<ServerTimeData> serverTimeList;
-            
+
             if (string.IsNullOrEmpty(timeDataJson))
             {
                 /// JSON time data was empty, there is not current entry for this user, create a new one
@@ -291,20 +291,16 @@ namespace ImperfectActivityTracker
         {
             List<CCSPlayerController> players = Utilities
                 .GetPlayers()
-                .Where(player => player?.IsValid == true 
-                       && player.PlayerPawn?.IsValid == true 
-                       && !player.IsBot && !player.IsHLTV 
+                .Where(player => player?.IsValid == true
+                       && player.PlayerPawn?.IsValid == true
+                       && !player.IsBot && !player.IsHLTV
                        && player.SteamID.ToString().Length == 17)
                 .ToList();
 
             if (players.Count == 0)
                 return;
 
-            //string combinedQuery = $@"SELECT *
-					       //           FROM `user_activity`
-					       //           WHERE `steam_id` = {players.Select(p => p.SteamID)}";
-
-			string combinedQuery = $@"SELECT `steam_id`, `time_data`
+            string combinedQuery = $@"SELECT `steam_id`, `time_data`
                                     FROM `user_activity`
                                     WHERE `steam_id` = (" + string.Join(",", players.Select(player => $"'{player.SteamID}'")) + ");";
 

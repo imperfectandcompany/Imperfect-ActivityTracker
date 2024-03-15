@@ -85,7 +85,7 @@ namespace ImperfectActivityTracker
                 if ((CsTeam)@event.Oldteam != CsTeam.None)
                 {
                     if ((CsTeam)@event.Oldteam == CsTeam.Terrorist
-                        ||(CsTeam)@event.Oldteam == CsTeam.CounterTerrorist)
+                        || (CsTeam)@event.Oldteam == CsTeam.CounterTerrorist)
                     {
                         /// If team they changed from was ct or t, save the current surfing time
                         currentServerTimeData.TotalSurfingTime += (int)(now - playerTimeData.Times["Surfing"]).TotalSeconds;
@@ -102,15 +102,15 @@ namespace ImperfectActivityTracker
                 if ((CsTeam)@event.Team == CsTeam.Terrorist
                     || (CsTeam)@event.Team == CsTeam.CounterTerrorist)
                 {
-                    /// If the new team they joined was a ct/t, reset the starting time for surfing since they are now surfing
+                    /// If the new team they joined is a ct/t, reset the starting time for surfing since they are now surfing
                     playerTimeData.Times["Surfing"] = now;
                 }
                 else if ((CsTeam)@event.Team == CsTeam.Spectator)
                 {
-                    /// If the new team they joined was spectator, reset the starting time for surfing since they are now spectating
+                    /// If the new team they joined is spectator, reset the starting time for spec since they are now spectating
                     playerTimeData.Times["Spec"] = now;
                 }
-                
+
                 return HookResult.Continue;
             });
         }

@@ -1,6 +1,5 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using System.Xml.Linq;
 
 namespace ImperfectActivityTracker
 {
