@@ -10,4 +10,4 @@ A plugin for user activity tracking for CounterStrikeSharp.
 - Unzip and place into your servers `game/csgo/` directory
 
 ## Credits
-Inspiration was taken from the [K4-System](https://github.com/K4ryuu/K4-System) plugin for some of the code contained in this repository.
+The time tracking module within the [K4-System](https://github.com/K4ryuu/K4-System) plugin inspired and provided the foundation for the code found in this repository.
