@@ -160,7 +160,7 @@ namespace ImperfectActivityTracker
                     { "Surfing", now },
                     { "Spec", now }
                 },
-                ServerTimeDataList = GetOrCreateJson(row)
+                PlayerSurfingTimeData = GetOrCreateJson(row)
             };
 
             GetOrCreateCurrentServerAndMapData(timeData);
@@ -200,6 +200,7 @@ namespace ImperfectActivityTracker
             {
                 /// Get the server time data if it exists, create it if it doesn't
                 var currentServerTimeData = timeData
+                .PlayerSurfingTimeData
                 .ServerTimeDataList
                 .FirstOrDefault(server => server.ServerIp == ServerIpAddress);
 
@@ -214,12 +215,13 @@ namespace ImperfectActivityTracker
                     currentServerTimeData = new ServerTimeData()
                     {
                         ServerIp = ServerIpAddress,
-                        TotalSpecTime = 0,
-                        TotalSurfingTime = 0
+                        ServerSpecTime = 0,
+                        ServerSurfingTime = 0
                     };
 
                     /// And add it to the time data and the return
                     timeData
+                        .PlayerSurfingTimeData
                         .ServerTimeDataList
                         .Add(currentServerTimeData);
 
@@ -267,24 +269,30 @@ namespace ImperfectActivityTracker
             }
         }
 
-        private List<ServerTimeData> GetOrCreateJson(DataRow rowData)
+        private SurfingTimeData GetOrCreateJson(DataRow rowData)
         {
             /// Get the time data from the SQL row and make sure it's a string
-            var timeDataJson = Convert.ToString(rowData["time_data"]);
-            List<ServerTimeData> serverTimeList;
+            var surfingTimeDataJson = Convert.ToString(rowData["time_data"]);
+            SurfingTimeData surfingTimeData;
 
-            if (string.IsNullOrEmpty(timeDataJson))
+            if (string.IsNullOrEmpty(surfingTimeDataJson))
             {
                 /// JSON time data was empty, there is not current entry for this user, create a new one
-                serverTimeList = new List<ServerTimeData>();
+
+                surfingTimeData = new SurfingTimeData() 
+                {
+                    ServerTimeDataList = new List<ServerTimeData>(),
+                    TotalSurfingTime = 0,
+                    TotalSpecTime = 0
+                };
             }
             else
             {
-                /// JSON time data was not empty, deserialize the it into a list of ServerTimeData objects
-                serverTimeList = JsonHelpers.DeserializeJson<List<ServerTimeData>>(timeDataJson);
+                /// JSON time data was not empty, deserialize the it into a list of SurfingTimeData objects
+                surfingTimeData = JsonHelpers.DeserializeJson<SurfingTimeData>(surfingTimeDataJson);
             }
 
-            return serverTimeList;
+            return surfingTimeData;
         }
 
         private void LoadAllPlayersCache()
@@ -345,19 +353,19 @@ namespace ImperfectActivityTracker
         private async Task ExecuteTimeUpdateAsync(string playerName, string steamId, TimeData timeData)
         {
             /// Serialize the list of ServerTimeData objects into a JSON string for saving
-            var serverTimeData = JsonHelpers.SerializeJson(timeData.ServerTimeDataList);
+            var surfingTimeData = JsonHelpers.SerializeJson(timeData.PlayerSurfingTimeData);
 
             /// Insert the name, steam id and time data into the database
             /// Or update the name and time data if it already exists
             string query = $@"INSERT INTO `user_activity` (`name`, `steam_id`, `time_data`)
-                      VALUES (@playerName, @steamId, @serverTimeData)
-                      ON DUPLICATE KEY UPDATE `name` = @playerName, `time_data` = @serverTimeData;";
+                      VALUES (@playerName, @steamId, @surfingTimeData)
+                      ON DUPLICATE KEY UPDATE `name` = @playerName, `time_data` = @surfingTimeData;";
 
             List<MySqlParameter> parameters = new List<MySqlParameter>
             {
                 new MySqlParameter("@playerName", playerName),
                 new MySqlParameter("@steamId", steamId),
-                new MySqlParameter("@serverTimeData", serverTimeData)
+                new MySqlParameter("@surfingTimeData", surfingTimeData)
             };
 
             await _databaseManager.ExecuteNonQueryAsync(query, parameters.ToArray());

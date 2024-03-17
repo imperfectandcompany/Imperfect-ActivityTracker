@@ -88,13 +88,21 @@ namespace ImperfectActivityTracker
                         || (CsTeam)@event.Oldteam == CsTeam.CounterTerrorist)
                     {
                         /// If team they changed from was ct or t, save the current surfing time
-                        currentServerTimeData.TotalSurfingTime += (int)(now - playerTimeData.Times["Surfing"]).TotalSeconds;
+                        /// Overall total surfing time
+                        playerTimeData.PlayerSurfingTimeData.TotalSurfingTime += (int)(now - playerTimeData.Times["Surfing"]).TotalSeconds;
+                        /// Current server surfing time
+                        currentServerTimeData.ServerSurfingTime += (int)(now - playerTimeData.Times["Surfing"]).TotalSeconds;
+                        /// Current map surfing time
                         currentMapTimeData.SurfingTime += (int)(now - playerTimeData.Times["Surfing"]).TotalSeconds;
                     }
                     else if ((CsTeam)@event.Oldteam == CsTeam.Spectator)
                     {
                         /// If team they changed from was spectator, save the current spec time
-                        currentServerTimeData.TotalSpecTime += (int)(now - playerTimeData.Times["Spec"]).TotalSeconds;
+                        /// Overall total spectating time
+                        playerTimeData.PlayerSurfingTimeData.TotalSpecTime += (int)(now - playerTimeData.Times["Spec"]).TotalSeconds;
+                        /// Current server spectating time
+                        currentMapTimeData.SpecTime += (int)(now - playerTimeData.Times["Spec"]).TotalSeconds;
+                        /// Current map spectating time
                         currentMapTimeData.SpecTime += (int)(now - playerTimeData.Times["Spec"]).TotalSeconds;
                     }
                 }
@@ -133,13 +141,21 @@ namespace ImperfectActivityTracker
             if ((CsTeam)player.TeamNum > CsTeam.Spectator)
             {
                 /// Since they are ct/t, they were surfing, save the time data for surfing
-                currentServerTimeData.TotalSurfingTime += (int)Math.Round((now - playerTimeData.Times["Surfing"]).TotalSeconds);
+                /// Overall total surfing time
+                playerTimeData.PlayerSurfingTimeData.TotalSurfingTime += (int)Math.Round((now - playerTimeData.Times["Surfing"]).TotalSeconds);
+                /// Current server surfing time
+                currentServerTimeData.ServerSurfingTime += (int)Math.Round((now - playerTimeData.Times["Surfing"]).TotalSeconds);
+                /// Current map surfing time
                 currentMapTimeData.SurfingTime += (int)Math.Round((now - playerTimeData.Times["Surfing"]).TotalSeconds);
             }
             else if ((CsTeam)player.TeamNum == CsTeam.Spectator)
             {
                 /// Since are currently on the spectator 'team', they were spectating, save the time data for spec
-                currentServerTimeData.TotalSpecTime += (int)Math.Round((now - playerTimeData.Times["Spec"]).TotalSeconds);
+                /// Overall total spectating time
+                playerTimeData.PlayerSurfingTimeData.TotalSpecTime += (int)Math.Round((now - playerTimeData.Times["Spec"]).TotalSeconds);
+                /// Current server spectating time
+                currentServerTimeData.ServerSpecTime += (int)Math.Round((now - playerTimeData.Times["Spec"]).TotalSeconds);
+                /// Current map spectating time
                 currentMapTimeData.SpecTime += (int)Math.Round((now - playerTimeData.Times["Spec"]).TotalSeconds);
             }
         }

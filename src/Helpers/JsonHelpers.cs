@@ -7,6 +7,7 @@ namespace ImperfectActivityTracker.Helpers
     {
         public static JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
         {
+            WriteIndented = true,
             PropertyNameCaseInsensitive = true,
             PropertyNamingPolicy = SnakeCaseNamingPolicy.Instance
         };
