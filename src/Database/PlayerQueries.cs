@@ -216,7 +216,8 @@ namespace ImperfectActivityTracker
                     {
                         ServerIp = ServerIpAddress,
                         ServerSpecTime = 0,
-                        ServerSurfingTime = 0
+                        ServerSurfingTime = 0,
+                        FirstTimeJoined = DateTime.Now
                     };
 
                     /// And add it to the time data and the return
@@ -259,7 +260,8 @@ namespace ImperfectActivityTracker
                         //TODO: Get map workshop id
                         //WorkshopID = GetMapWorkshopId(),
                         SurfingTime = 0,
-                        SpecTime = 0
+                        SpecTime = 0,
+                        FirstTimePlayed = DateTime.Now
                     };
 
                     currentServerTimeData.Maps.Add(currentMapTimeData);

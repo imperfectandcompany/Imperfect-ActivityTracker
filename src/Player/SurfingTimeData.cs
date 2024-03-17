@@ -15,16 +15,18 @@ namespace ImperfectActivityTracker
     public class ServerTimeData
     {
         public string ServerIp { get; set; } = "";
-        public List<MapTimeData> Maps { get; set; } = new();
         public int ServerSurfingTime { get; set; }
         public int ServerSpecTime { get; set; }
+        public DateTime FirstTimeJoined { get; set; }
+        public List<MapTimeData> Maps { get; set; } = new();
     }
 
     public class MapTimeData
     {
-        public string MapName { get; set; } = "";
-        public string WorkshopId { get; set; } = "";
         public int SurfingTime { get; set; }
         public int SpecTime { get; set; }
+        public string MapName { get; set; } = "";
+        public string WorkshopId { get; set; } = "";
+        public DateTime FirstTimePlayed { get; set; }
     }
 }
