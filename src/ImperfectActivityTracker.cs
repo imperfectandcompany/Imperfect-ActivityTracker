@@ -1,10 +1,12 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Core.Attributes;
 using ImperfectActivityTracker.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace ImperfectActivityTracker
 {
+    [MinimumApiVersion(199)]
     public partial class ImperfectActivityTracker : BasePlugin, IPluginConfig<Config>
     {
         public static ILogger _logger;
