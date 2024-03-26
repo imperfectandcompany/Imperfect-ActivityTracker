@@ -5,7 +5,7 @@ A plugin for user activity tracking for CounterStrikeSharp.
 ---
 
 ## Requirements
-- [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp)
+- [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp) - Version 199+
 - [MySQL](https://www.mysql.com/) database to save information
 
 ---
