@@ -1,12 +1,10 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Core.Attributes;
 using ImperfectActivityTracker.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace ImperfectActivityTracker
 {
-    [MinimumApiVersion(199)]
     public partial class ImperfectActivityTracker : BasePlugin, IPluginConfig<Config>
     {
         public static ILogger _logger;
@@ -19,7 +17,7 @@ namespace ImperfectActivityTracker
         public string ServerIpAddress { get; set; } = "";
         public string CurrentMapName { get; set; } = "";
 
-        public override string ModuleName => "ImperfectActivityTracker";
+        public override string ModuleName => "Imperfect-ActivityTracker";
         public override string ModuleVersion => "1.3.0";
         public override string ModuleAuthor => "Imperfect Gamers - raz & Olionkey, Borrowed code from K4ryuu";
         public override string ModuleDescription => "A user activity tracker plugin.";
