@@ -11,7 +11,7 @@ namespace ImperfectActivityTracker
     {
         [ConsoleCommand("css_playtime", "Get a total surf/spec times for a player")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
-        public void GetTotalPlayTimeCommand(CCSPlayerController? player, CommandInfo commandInfo)
+        public void GetAllPlayTimeCommand(CCSPlayerController? player, CommandInfo commandInfo)
         {
             if (player != null)
             {
@@ -24,43 +24,159 @@ namespace ImperfectActivityTracker
                     if (playerTimeData != null
                         && playerTimeData.PlayerSurfingTimeData != null)
                     {
-                        var now = DateTime.UtcNow;
-                        var currentSurfTime = (int)(now - playerTimeData.Times["Surfing"]).TotalSeconds;
-                        var currentSpecTime = (int)(now - playerTimeData.Times["Spec"]).TotalSeconds;
-                        var totalSurfingTime = playerTimeData.PlayerSurfingTimeData.TotalSurfingTime + currentSurfTime;
-                        var totalSpecTime = playerTimeData.PlayerSurfingTimeData.TotalSpecTime + currentSpecTime;
+                        var currentSurfTime = GetCurrentSurfingTime(playerTimeData);
+                        var currentSpecTime = GetCurrentSpecTime(playerTimeData);
 
+                        OutputTotalTime(commandInfo, playerTimeData, currentSurfTime, currentSpecTime);
 
-                        commandInfo.ReplyToCommand($"Total time surfing: {TimeHelpers.FormatPlaytime(totalSurfingTime)}");
-                        commandInfo.ReplyToCommand($"Total time spectating: {TimeHelpers.FormatPlaytime(totalSpecTime)}");
+                        OutputMapTime(commandInfo, playerTimeData, currentSurfTime, currentSpecTime);
 
-                        var mapTimeData = GetMapTimeData(playerTimeData, CurrentMapName);
-                        var mapSurfTime = mapTimeData.SurfingTime + currentSurfTime;
-                        var mapSpecTime = mapTimeData.SpecTime + currentSpecTime;
+                        OutputServerTime(commandInfo, playerTimeData, currentSurfTime, currentSpecTime);
 
-                        if (mapTimeData != null)
-                        {
-                            commandInfo.ReplyToCommand($"-----------------------------------");
-                            commandInfo.ReplyToCommand($"Total time surfing on {CurrentMapName}: {TimeHelpers.FormatPlaytime(mapSurfTime)}");
-                            commandInfo.ReplyToCommand($"Total time spectating on {CurrentMapName}: {TimeHelpers.FormatPlaytime(mapSpecTime)}");
-                        }
-
-                        var serverTimeData = GetServerTimeData(playerTimeData, ServerIpAddress);
-                        var serverSurfTime = serverTimeData.ServerSurfingTime + currentSurfTime;
-                        var serverSpecTime = serverTimeData.ServerSpecTime + currentSpecTime;
-
-                        if (serverTimeData != null)
-                        {
-                            commandInfo.ReplyToCommand($"-----------------------------------");
-                            commandInfo.ReplyToCommand($"Time surfing on this server: {TimeHelpers.FormatPlaytime(serverSurfTime)}");
-                            commandInfo.ReplyToCommand($"Time spectating on this server: {TimeHelpers.FormatPlaytime(serverSpecTime)}");
-                        }
                     }
                     else
                     {
                         commandInfo.ReplyToCommand($"No times found for {player.PlayerName}");
                         _logger.LogInformation($"No playtime found for {player.PlayerName ?? "player"} ({player.SteamID}). Either no times exists or something happened loading their surfing time data");
                     }
+                }
+            }
+        }
+
+        [ConsoleCommand("css_surftime", "Get a total time for when a player is surfing")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
+        public void GetSurfPlayTimeCommand(CCSPlayerController? player, CommandInfo commandInfo)
+        {
+            if (player != null)
+            {
+                // Get players time data from database using their steam ID
+                var playerCacheData = PlayerCache.Instance.GetPlayerData(player);
+                if (playerCacheData != null)
+                {
+                    var playerTimeData = playerCacheData.PlayerTimeData;
+
+                    if (playerTimeData != null
+                        && playerTimeData.PlayerSurfingTimeData != null)
+                    {
+                        var currentSurfTime = GetCurrentSurfingTime(playerTimeData);
+
+                        OutputTotalTime(commandInfo, playerTimeData, currentSurfTime, null);
+
+                        OutputMapTime(commandInfo, playerTimeData, currentSurfTime, null);
+
+                        OutputServerTime(commandInfo, playerTimeData, currentSurfTime, null);
+
+                    }
+                    else
+                    {
+                        commandInfo.ReplyToCommand($"No times found for {player.PlayerName}");
+                        _logger.LogInformation($"No playtime found for {player.PlayerName ?? "player"} ({player.SteamID}). Either no times exists or something happened loading their surfing time data");
+                    }
+                }
+            }
+        }
+
+        [ConsoleCommand("css_spectime", "Get a total time for when a player is spectating")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
+        public void GetSpecPlayTimeCommand(CCSPlayerController? player, CommandInfo commandInfo)
+        {
+            if (player != null)
+            {
+                // Get players time data from database using their steam ID
+                var playerCacheData = PlayerCache.Instance.GetPlayerData(player);
+                if (playerCacheData != null)
+                {
+                    var playerTimeData = playerCacheData.PlayerTimeData;
+
+                    if (playerTimeData != null
+                        && playerTimeData.PlayerSurfingTimeData != null)
+                    {
+                        var currentSpecTime = GetCurrentSpecTime(playerTimeData);
+
+                        OutputTotalTime(commandInfo, playerTimeData, null, currentSpecTime);
+
+                        OutputMapTime(commandInfo, playerTimeData, null, currentSpecTime);
+
+                        OutputServerTime(commandInfo, playerTimeData, null, currentSpecTime);
+
+                    }
+                    else
+                    {
+                        commandInfo.ReplyToCommand($"No times found for {player.PlayerName}");
+                        _logger.LogInformation($"No playtime found for {player.PlayerName ?? "player"} ({player.SteamID}). Either no times exists or something happened loading their surfing time data");
+                    }
+                }
+            }
+        }
+
+        private int GetCurrentSpecTime(TimeData playerTimeData)
+        {
+            var now = DateTime.UtcNow;
+
+            return (int)(now - playerTimeData.Times["Spec"]).TotalSeconds;
+        }
+
+        private int GetCurrentSurfingTime(TimeData playerTimeData)
+        {
+            var now = DateTime.UtcNow;
+
+            return (int)(now - playerTimeData.Times["Surfing"]).TotalSeconds;
+        }
+
+        private void OutputTotalTime(CommandInfo commandInfo, TimeData playerTimeData, int? currentSurfTime, int? currentSpecTime)
+        {
+            var totalSurfingTime = playerTimeData.PlayerSurfingTimeData.TotalSurfingTime + currentSurfTime ?? 0;
+            var totalSpecTime = playerTimeData.PlayerSurfingTimeData.TotalSpecTime + currentSpecTime ?? 0;
+
+            if (currentSurfTime != null)
+            {
+                commandInfo.ReplyToCommand($"Total time surfing: {TimeHelpers.FormatPlaytime(totalSurfingTime)}");
+            }
+
+            if (currentSpecTime != null)
+            {
+                commandInfo.ReplyToCommand($"Total time spectating: {TimeHelpers.FormatPlaytime(totalSpecTime)}");
+            }
+        }
+
+        private void OutputServerTime(CommandInfo commandInfo, TimeData playerTimeData, int? currentSurfTime, int? currentSpecTime)
+        {
+            var serverTimeData = GetServerTimeData(playerTimeData, ServerIpAddress);
+            var serverSurfTime = serverTimeData.ServerSurfingTime + currentSurfTime ?? 0;
+            var serverSpecTime = serverTimeData.ServerSpecTime + currentSpecTime ?? 0;
+
+            if (serverTimeData != null)
+            {
+                commandInfo.ReplyToCommand($"-----------------------------------");
+
+                if (currentSurfTime != null)
+                {
+                    commandInfo.ReplyToCommand($"Time surfing on this server: {TimeHelpers.FormatPlaytime(serverSurfTime)}");
+                }
+                if (currentSpecTime != null)
+                {
+                    commandInfo.ReplyToCommand($"Time spectating on this server: {TimeHelpers.FormatPlaytime(serverSpecTime)}");
+                }
+            }
+        }
+
+        private void OutputMapTime(CommandInfo commandInfo, TimeData playerTimeData, int? currentSurfTime, int? currentSpecTime)
+        {
+            var mapTimeData = GetMapTimeData(playerTimeData, CurrentMapName);
+            var mapSurfTime = mapTimeData.SurfingTime + currentSurfTime ?? 0;
+            var mapSpecTime = mapTimeData.SpecTime + currentSpecTime ?? 0;
+
+            if (mapTimeData != null)
+            {
+                commandInfo.ReplyToCommand($"-----------------------------------");
+                if (currentSurfTime != null)
+                {
+                    commandInfo.ReplyToCommand($"Total time surfing on {CurrentMapName}: {TimeHelpers.FormatPlaytime(mapSurfTime)}");
+                }
+
+                if (currentSpecTime != null)
+                {
+                    commandInfo.ReplyToCommand($"Total time spectating on {CurrentMapName}: {TimeHelpers.FormatPlaytime(mapSpecTime)}");
                 }
             }
         }
