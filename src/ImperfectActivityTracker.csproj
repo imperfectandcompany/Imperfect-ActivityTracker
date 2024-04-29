@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.188" />
-    <PackageReference Include="MySqlConnector" Version="2.3.5" />
+    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.221" />
+    <PackageReference Include="MySqlConnector" Version="2.3.7" />
   </ItemGroup>
 
 </Project>
