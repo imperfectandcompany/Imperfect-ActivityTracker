@@ -5,6 +5,7 @@ using ImperfectActivityTracker.Helpers;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using System.Data;
+using System.Net;
 
 namespace ImperfectActivityTracker
 {
@@ -33,10 +34,13 @@ namespace ImperfectActivityTracker
 
                     string playerSteamId = steamId.SteamId64.ToString();
 
+                    string ipAddress = player.IpAddress ?? "0.0.0.0";
+
                     PlayerData data = new PlayerData
                     {
                         PlayerName = player.PlayerName,
                         SteamId = playerSteamId,
+                        IpAddress = ipAddress,
                         CacheData = PlayerCache.Instance.GetPlayerData(player)
                     };
 
@@ -67,7 +71,7 @@ namespace ImperfectActivityTracker
 
                     if (playerCacheData != null)
                     {
-                        await ExecuteTimeUpdateAsync(playerData.PlayerName, playerData.SteamId, playerData.CacheData.PlayerTimeData);
+                        await ExecuteTimeUpdateAsync(playerData.PlayerName, playerData.SteamId, playerData.IpAddress, playerData.CacheData.PlayerTimeData);
                     }
                 }
             });
@@ -79,17 +83,18 @@ namespace ImperfectActivityTracker
 
             string playerName = player.PlayerName;
             string playerSteamId = player.SteamID.ToString();
+            string ipAddress = player.IpAddress ?? "0.0.0.0";
 
-            _ = SavePlayerDataAsync(playerName, playerSteamId, cacheData, remove);
+            _ = SavePlayerDataAsync(playerName, playerSteamId, ipAddress, cacheData, remove);
         }
 
-        private async Task SavePlayerDataAsync(string playerName, string steamId, PlayerCacheData cacheData, bool remove)
+        private async Task SavePlayerDataAsync(string playerName, string steamId, string ipAddress, PlayerCacheData cacheData, bool remove)
         {
             await _databaseManager.ExecuteTransactionAsync(async (connection, transaction) =>
             {
 
                 if (cacheData.PlayerTimeData != null)
-                    await ExecuteTimeUpdateAsync(playerName, steamId, cacheData.PlayerTimeData);
+                    await ExecuteTimeUpdateAsync(playerName, steamId, ipAddress, cacheData.PlayerTimeData);
             });
 
             if (remove)
@@ -99,12 +104,14 @@ namespace ImperfectActivityTracker
         private void LoadPlayerCache(CCSPlayerController player)
         {
             string combinedQuery = $@"
-					INSERT INTO `user_activity` (`name`, `steam_id`)
+					INSERT INTO `user_activity` (`name`, `steam_id`, `ip_address`)
 					VALUES (
 						@escapedName,
-						@steamid
+						@steamid,
+                        @ipAddress
 					)
 					ON DUPLICATE KEY UPDATE
+                        `ip_address` = @ipAddress,
 						`name` = @escapedName;
 
 					SELECT *
@@ -114,10 +121,13 @@ namespace ImperfectActivityTracker
 
             ulong steamID = player.SteamID;
 
+            string ipAddress = player.IpAddress ?? "0.0.0.0";
+
             MySqlParameter[] parameters = new MySqlParameter[]
             {
                 new MySqlParameter("@escapedName", player.PlayerName),
                 new MySqlParameter("@steamid", steamID),
+                new MySqlParameter("@ipAddress", ipAddress)
             };
 
             _ = LoadPlayerCacheAsync(steamID, combinedQuery, parameters);
@@ -352,21 +362,22 @@ namespace ImperfectActivityTracker
             }
         }
 
-        private async Task ExecuteTimeUpdateAsync(string playerName, string steamId, TimeData timeData)
+        private async Task ExecuteTimeUpdateAsync(string playerName, string steamId, string ipAddress, TimeData timeData)
         {
             /// Serialize the list of ServerTimeData objects into a JSON string for saving
             var surfingTimeData = JsonHelpers.SerializeJson(timeData.PlayerSurfingTimeData);
 
             /// Insert the name, steam id and time data into the database
             /// Or update the name and time data if it already exists
-            string query = $@"INSERT INTO `user_activity` (`name`, `steam_id`, `time_data`)
-                      VALUES (@playerName, @steamId, @surfingTimeData)
+            string query = $@"INSERT INTO `user_activity` (`name`, `steam_id`, `ip_address`, `time_data`)
+                      VALUES (@playerName, @steamId, @ipAddress, @surfingTimeData)
                       ON DUPLICATE KEY UPDATE `name` = @playerName, `time_data` = @surfingTimeData;";
 
             List<MySqlParameter> parameters = new List<MySqlParameter>
             {
                 new MySqlParameter("@playerName", playerName),
                 new MySqlParameter("@steamId", steamId),
+                new MySqlParameter("@ipAddress", ipAddress),
                 new MySqlParameter("@surfingTimeData", surfingTimeData)
             };
 

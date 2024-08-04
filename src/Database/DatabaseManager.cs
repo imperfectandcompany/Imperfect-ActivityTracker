@@ -106,6 +106,7 @@ namespace ImperfectActivityTracker
             string timeTableQuery = @$"CREATE TABLE IF NOT EXISTS `user_activity` (
                                         `steam_id` VARCHAR(32) COLLATE 'utf8mb4_unicode_ci' UNIQUE NOT NULL,
                                         `name` VARCHAR(255) COLLATE 'utf8mb4_unicode_ci' NOT NULL,
+                                        `ip_address` VARCHAR(255) NOT NULL DEFAULT '',
                                         `first_join_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 					                    `time_data` JSON,
                                         UNIQUE (`steam_id`))";

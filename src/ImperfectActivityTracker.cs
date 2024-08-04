@@ -18,7 +18,7 @@ namespace ImperfectActivityTracker
         public string CurrentMapName { get; set; } = "";
 
         public override string ModuleName => "Imperfect-ActivityTracker";
-        public override string ModuleVersion => "1.3.1";
+        public override string ModuleVersion => "1.3.2";
         public override string ModuleAuthor => "Imperfect Gamers - raz & Olionkey, Borrowed code from K4ryuu";
         public override string ModuleDescription => "A user activity tracker plugin.";
 
